@@ -1,0 +1,24 @@
+diff --git a/PKGBUILD b/PKGBUILD
+old mode 100644
+new mode 100755
+index 97c78b9..44cd983
+--- a/PKGBUILD
++++ b/PKGBUILD
+@@ -2,7 +2,7 @@
+ # Contributor: Alexander F. Rødseth <xyproto@archlinux.org>
+ 
+ pkgname=riscv-pk-git
+-pkgver=1
++pkgver=r606.9637e60
+ pkgrel=1
+ pkgdesc='RISC-V proxy kernel and boot loader'
+ arch=(x86_64)
+@@ -11,7 +11,7 @@ license=(custom)
+ depends=(riscv64-linux-gnu-binutils riscv64-linux-gnu-gcc riscv64-linux-gnu-glibc)
+ makedepends=(git)
+ groups=(risc-v)
+-source=("git+$url#branch=master")
++source=("$pkgname::git+$url#branch=master")
+ sha256sums=('SKIP')
+ 
+ pkgver() {
