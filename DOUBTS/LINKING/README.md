@@ -1,8 +1,8 @@
 # Linking
 Riesco a eseguire un programma compilato a partire da un sorgente in `C` tramite gcc, quando invece provo a separare il processo di compilazione in:
-1) compilazione
-2) assemblaggio
-3) linking
+1. compilazione
+2. assemblaggio
+3. linking
 
 utilizzando esplicitamenti i vari strumenti preposti (`gcc` con opzione `-S`, `as` e `ld`) la parte di *linking* fallisce. Questo perche' non viene inclusa automaticamente `libc`.
 
