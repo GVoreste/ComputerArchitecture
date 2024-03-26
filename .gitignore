@@ -1,1 +1,4 @@
 chroot
+**/STRANGE_ASM/*.asm
+*.o
+*.x
