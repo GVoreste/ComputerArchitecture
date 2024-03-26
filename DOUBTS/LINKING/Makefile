@@ -10,7 +10,7 @@ hello_linker.x: hello_linker.o
 hello_linker.o: hello_linker.asm
 	$(AS) $^ -o $@
 hello_linker.asm: hello_linker.c
-	$(CC) -S -O1 $^ -o $@
+	$(CC) -S -O1 -fverbose-asm $^ -o $@
 
 hello_linker-VAR.x: hello_linker.c
 	$(CC) -O1 $^ -o hello_linker-VAR.x

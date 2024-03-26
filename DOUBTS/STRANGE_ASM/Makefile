@@ -5,7 +5,7 @@ CC=$(PREFIX)-gcc
 hello_risc.o: hello_risc.asm
 	$(AS) $^ -o $@
 hello_risc.asm: hello_risc.c
-	$(CC) -S -O1 $^ -o $@
+	$(CC) -S -O1 -fverbose-asm $^ -o $@
 
 .PHONY: clean run
 
