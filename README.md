@@ -5,7 +5,7 @@ Nel [nella pagina collegata](TOOLS.md) viene descritta in modo riproducibile la 
 ## Dubbi
 Nel provare a riprodurre gli esempi sulle slides sono incappato in diversi dubbi. Il repositorio e strutturato in modo che ogni dubbio corrisponda ad una sottocartella della cartella `DOUBTS`.
 Ogni sottocartella contiene una spiegazione del dubbio, dei codici sorgente e un `Makefile` per riprodurre i miei step di compilazione.
-> ## Tips:
+> #### Tips:
 > Si possono compilare tutti i sorgenti che sono riuscito a compilare tramite il `Makefile` presente nella cartella di base lanciando il comando `make`, allo stesso modo si possono cancellare tutti i frutti della compilazione con il comando `make clean` dato nella cartella di base. 
 
 I dubbi sono (quelli segnati vuol dire che sono stati risolti e contengono una versione corretta dei sorgenti oppure un file con la spiegazione):
