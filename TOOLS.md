@@ -40,3 +40,7 @@ popd # Return to start dir
 > All'inizio avevo capito che a differenza di un emulatore fornisse un userspace in cui si potessero emulare singoli processi al posto che dover emulare anche il processo di booting e installare un kernel che funzioni su **`RISC-V`**. Questa mia intuizione si e' rivelata un abbaglio perche' mi sembra che il comando `pk` forninsca un kernel leggero il quale si occupa di gestire il programma compilato per **`RISC-V`** che voglio lanciare con `spike`.
 >
 > Sono sicuro di non aver capito completamente a cosa servano questi due strumenti e come interagiscano, quindi se possibile vorrei qualche delucidazione.
+
+---
+
+[**Torna alla home**](README.md)
