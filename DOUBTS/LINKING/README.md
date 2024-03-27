@@ -11,3 +11,7 @@ Se aggiungo l'opzione `-lc` a `ld` giustamente mi collega (penso in modo statico
 Non so cosa devo fare per poter riprodurre la compilazione come `gcc` e riuscire quindi ad eseguire il mio codice con `spike`
 
 Per provare a compilare come sto' provando io, lanciare `make`, per invece compilare lasciando che `gcc` si occupi delle varie fasi di compilazione, lanciare `make var`. Se infine si vuole provare il programma, lanciare `make run`; quest'ultimo comando si aspetta che `pk` sia stato installato nella cartella `/usr/riscv64-linux-gnu/bin/`, in caso contrario, sovrascrivere la variabile d'ambiente `$PK_PATH`
+
+---
+
+[**Torna alla home**](../../README.md)

@@ -6,4 +6,8 @@ Nella cartella sono presenti due codici che dovrebbero essere equivalenti `ifsta
 Per verificare il problema compilare con `make`.
 
 > ## Soluzione
-> Il codice contiene istruzioni che non sono presenti nelle slides ma fanno parte dell'***ISA*** **`RISC-V`**. Le istruzioni presentate a lezione sono una panoramica non completa, per un elenco completo bisogna fare riferimento alla documentazione ufficiale presente sull'[github di **`RISC-V`**] oppure sul loro [sito ufficiale](https://riscv.org/wp-content/uploads/2019/12/riscv-spec-20191213.pdf) in formato *pdf*.
+> Il codice contiene istruzioni che non sono presenti nelle slides ma fanno parte dell'***ISA*** **`RISC-V`**. Le istruzioni presentate a lezione sono una panoramica non completa, per un elenco completo bisogna fare riferimento alla documentazione ufficiale presente sull'[github di **`RISC-V`**](https://github.com/riscv/riscv-isa-manual) oppure sul loro [sito ufficiale](https://riscv.org/wp-content/uploads/2019/12/riscv-spec-20191213.pdf) in formato *pdf*.
+
+---
+
+[**Torna alla home**](../../README.md)
