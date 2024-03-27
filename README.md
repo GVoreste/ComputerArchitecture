@@ -7,8 +7,9 @@ Nel provare a riprodurre gli esempi sulle slides sono incappato in diversi dubbi
 Ogni sottocartella contiene una spiegazione del dubbio, dei codici sorgente e un `Makefile` per riprodurre i miei step di compilazione. 
 
 I dubbi sono (quelli segnati vuol dire che sono stati risolti e contengono una versione corretta dei sorgenti oppure un file con la spiegazione):
-- [ ] [ASM_SOURCE](DOUBTS/ASM_SOURCE/README.md): difficolta' nel compilare e eseguire con un debugger codice *assembly*
+- [x] [ASM_SOURCE](DOUBTS/ASM_SOURCE/README.md): difficolta' nel compilare e eseguire con un debugger codice *assembly*
 - [ ] [LINKING](DOUBTS/LINKING/README.md): errore nel linking del codice oggetto assemblato da `as`
-- [ ] [STRANGE_ASM](DOUBTS/STRANGE_ASM/README.md): pseudo-instruzioni presenti dopo aver assemblato il condice con `as`
+    > questo problema verra' risolto a tempo debito quando affronteremo il processo *linking* del codice a lezione.
+- [x] [STRANGE_ASM](DOUBTS/STRANGE_ASM/README.md): pseudo-instruzioni presenti dopo aver assemblato il condice con `as`
 ## Esercizi
 Appena avro' risolto i dubbi verra' aggiunta una cartella con gli esempi fatti sulle slides riprodotti come codice funzionante e testato, in modo da impratichirmi un pochettino e anche da referenza futura.
