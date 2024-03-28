@@ -2,3 +2,9 @@ chroot
 **/STRANGE_ASM/*.asm
 *.o
 *.x
+
+docs/_build
+docs/_static
+docs/_templates
+.doctrees
+.vscode
