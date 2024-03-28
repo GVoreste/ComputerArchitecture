@@ -13,7 +13,7 @@ author = 'Giuliano Verrando'
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-master_doc = 'README'
+master_doc = 'index'
 extensions = ['sphinx.ext.todo']
 
 templates_path = ['_templates']
