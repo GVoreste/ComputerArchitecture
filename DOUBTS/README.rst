@@ -6,6 +6,7 @@ Dubbi
    STRANGE_ASM/README
    LINKING/README
    ASM_SOURCE/README
+   LDD/README
 
 I dubbi sono (quelli segnati vuol dire che sono stati risolti e contengono una versione corretta dei sorgenti oppure un file con la spiegazione):
 
