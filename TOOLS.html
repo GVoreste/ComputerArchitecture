@@ -1,0 +1,155 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <title>Procedura installazione toolchain &#8212; Computer Architecture 2023-2024  documentazione</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script src="_static/translations.js"></script>
+    <link rel="index" title="Indice" href="genindex.html" />
+    <link rel="search" title="Cerca" href="search.html" />
+    <link rel="next" title="Dubbi" href="DOUBTS/README.html" />
+    <link rel="prev" title="Documentazione Computer Architecture 2023-2024" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="procedura-installazione-toolchain">
+<h1>Procedura installazione toolchain<a class="headerlink" href="#procedura-installazione-toolchain" title="Link a questa intestazione">¶</a></h1>
+<p>Una parte della <em>toolchain</em> era presente sui repositori ufficiali</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo pacman -Syu <span class="c1"># Update repositories and upgrade system</span>
+sudo pacman -S riscv64-elf-binutils
+sudo pacman -S riscv64-elf-newlib
+sudo pacman -S riscv64-elf-gcc
+sudo pacman -S riscv64-elf-gdb
+sudo pacman -S risc-v <span class="c1"># Group that contains `spike` and dependencies for `pk`</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">pk</span></code> invece era presente solo sull”<code class="docutils literal notranslate"><span class="pre">AUR</span></code> con un <code class="docutils literal notranslate"><span class="pre">PKGBUILD</span></code> rotto. Il mantainer non sembra occuparsi piu” del pacchetto.
+La proceura compila il tool nella cartella <code class="docutils literal notranslate"><span class="pre">/tmp</span></code> in un <code class="docutils literal notranslate"><span class="pre">fs</span></code> pulito (si e” seguita la procedura trovata sull”<a class="reference external" href="https://wiki.archlinux.org/title/DeveloperWiki:Building_in_a_clean_chroot">Arch Wiki: Building in a clean chroot</a>)</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">pushd</span> <span class="c1"># Save value of current dir on stack</span>
+<span class="nb">cd</span> /tmp
+git clone https://aur.archlinux.org/riscv-pk-git.git
+<span class="nb">cd</span> riscv-pk-git
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mkdir chroot
+<span class="nv">CHROOT</span><span class="o">=</span>/tmp/riscv-pk-git/chroot
+sudo mkarchroot <span class="nv">$CHROOT</span>/root base-devel
+sudo arch-nspawn <span class="nv">$CHROOT</span>/root pacman -Syu git risc-v
+</pre></div>
+</div>
+<p>per fare in modo che il comando <code class="docutils literal notranslate"><span class="pre">makechrootpkg</span></code> (wrapper per <code class="docutils literal notranslate"><span class="pre">makepkg</span></code> in una cartella <code class="docutils literal notranslate"><span class="pre">chroot</span></code> destinazione) vada a buon fine e” necessaria applicare la <code class="file docutils literal notranslate"><span class="pre">patch</span> <span class="pre">presente</span> <span class="pre">in</span> <span class="pre">questo</span> <span class="pre">repositorio</span> <span class="pre">&lt;PKGBUILD.patch&gt;</span></code>.
+I comandi danno per scontato che la cartella di origine fosse quella del repositorio, in caso contrario sostituire <code class="docutils literal notranslate"><span class="pre">$(dirs</span> <span class="pre">+1)</span></code> con la cartella appropriata</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cp <span class="k">$(</span><span class="nb">dirs</span> +1<span class="k">)</span>/PKGBUILD.patch ./
+patch -i PKGBUILD.patch
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo makechrootpkg -c -r <span class="nv">$CHROOT</span> <span class="c1"># Download sources and compilation</span>
+sudo pacman -U riscv-pk-git-*-x86_64.pkg.tar.zst <span class="c1"># Install package</span>
+<span class="nb">cd</span> /tmp
+sudo rm -rf riscv-pk-git <span class="c1"># Clean `/tmp` dir</span>
+<span class="nb">popd</span> <span class="c1"># Return to start dir</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Nota</p>
+<p>Non sono sicuro di aver capito a cosa servono <code class="docutils literal notranslate"><span class="pre">spike</span></code> e <code class="docutils literal notranslate"><span class="pre">pk</span></code>, quello che ho capito e” che <code class="docutils literal notranslate"><span class="pre">spike</span></code> emula in qualche modo l’architettura <code class="docutils literal notranslate"><span class="pre">RISC-V</span></code> sul mio computer <code class="docutils literal notranslate"><span class="pre">x86</span></code>,
+ma non ho capito in cosa la sua emulazione differisce dall’emulazione tramite altri emulatori (su internet ho trovato che e” un <a class="reference external" href="https://github.com/riscv-software-src/riscv-isa-sim">ISA emulator</a>,
+ma non ho capito in cosa differisce per un emulatore classico, sembra sia piu” leggero, come se non emulasse tutta l’architettura, ma non ho capito bene la differenza).</p>
+<p>All’inizio avevo capito che a differenza di un emulatore fornisse un userspace in cui si potessero emulare singoli processi al posto che dover emulare anche il processo di booting e installare un kernel che funzioni su <code class="docutils literal notranslate"><span class="pre">RISC-V</span></code>.
+Questa mia intuizione si e” rivelata un abbaglio perche” mi sembra che il comando <code class="docutils literal notranslate"><span class="pre">pk</span></code> forninsca un kernel leggero il quale si occupa di gestire il programma compilato per <code class="docutils literal notranslate"><span class="pre">RISC-V</span></code> che voglio lanciare con <code class="docutils literal notranslate"><span class="pre">spike</span></code>.</p>
+<p>Sono sicuro di non aver capito completamente a cosa servano questi due strumenti e come interagiscano, quindi se possibile vorrei qualche delucidazione.</p>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Computer Architecture 2023-2024</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigazione</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Procedura installazione toolchain</a></li>
+<li class="toctree-l1"><a class="reference internal" href="DOUBTS/README.html">Dubbi</a></li>
+<li class="toctree-l1"><a class="reference internal" href="EXERCISES/README.html">Esercizi</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="capitolo precedente">Documentazione Computer Architecture 2023-2024</a></li>
+      <li>Next: <a href="DOUBTS/README.html" title="capitolo successivo">Dubbi</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Ricerca veloce</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Vai" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2024, Giuliano Verrando.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/TOOLS.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

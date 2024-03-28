@@ -1,0 +1,128 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <title>Linking &#8212; Computer Architecture 2023-2024  documentazione</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../_static/translations.js"></script>
+    <link rel="index" title="Indice" href="../../genindex.html" />
+    <link rel="search" title="Cerca" href="../../search.html" />
+    <link rel="next" title="Asm Source" href="../ASM_SOURCE/README.html" />
+    <link rel="prev" title="Strange Asm" href="../STRANGE_ASM/README.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="linking">
+<h1>Linking<a class="headerlink" href="#linking" title="Link a questa intestazione">¶</a></h1>
+<p>Riesco a eseguire un programma compilato a partire da un sorgente in <cite>C</cite> tramite gcc, quando invece provo a separare il processo di compilazione in:</p>
+<ol class="arabic simple">
+<li><p>compilazione</p></li>
+<li><p>assemblaggio</p></li>
+<li><p>linking</p></li>
+</ol>
+<p>utilizzando esplicitamenti i vari strumenti preposti (<code class="docutils literal notranslate"><span class="pre">gcc</span></code> con opzione <code class="docutils literal notranslate"><span class="pre">-S</span></code>, <code class="docutils literal notranslate"><span class="pre">as</span></code> e <code class="docutils literal notranslate"><span class="pre">ld</span></code>) la parte di <em>linking</em> fallisce. Questo perche” non viene inclusa automaticamente <code class="docutils literal notranslate"><span class="pre">libc</span></code>.</p>
+<p>Se aggiungo l’opzione <code class="docutils literal notranslate"><span class="pre">-lc</span></code> a <code class="docutils literal notranslate"><span class="pre">ld</span></code> giustamente mi collega (penso in modo statico, ma non saprei determinarlo) <code class="docutils literal notranslate"><span class="pre">newlib</span></code> come mi aspetterei. Nonostante questo il linking fallisce a causa di simboli che sembrano legati a <code class="docutils literal notranslate"><span class="pre">syscall</span></code>…</p>
+<p>Non so cosa devo fare per poter riprodurre la compilazione come <code class="docutils literal notranslate"><span class="pre">gcc</span></code> e riuscire quindi ad eseguire il mio codice con <code class="docutils literal notranslate"><span class="pre">spike</span></code></p>
+<p>Per provare a compilare come sto” provando io, lanciare <code class="docutils literal notranslate"><span class="pre">make</span></code>, per invece compilare lasciando che <code class="docutils literal notranslate"><span class="pre">gcc</span></code> si occupi delle varie fasi di compilazione, lanciare <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">var</span></code>. Se infine si vuole provare il programma, lanciare <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">run</span></code>;
+quest’ultimo comando si aspetta che <code class="docutils literal notranslate"><span class="pre">pk</span></code> sia stato installato nella cartella <code class="docutils literal notranslate"><span class="pre">/usr/riscv64-linux-gnu/bin/</span></code>, in caso contrario, sovrascrivere la variabile d’ambiente <code class="docutils literal notranslate"><span class="pre">$PK_PATH</span></code></p>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">Computer Architecture 2023-2024</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigazione</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../TOOLS.html">Procedura installazione toolchain</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../README.html">Dubbi</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../STRANGE_ASM/README.html">Strange Asm</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Linking</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../ASM_SOURCE/README.html">Asm Source</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../EXERCISES/README.html">Esercizi</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../README.html">Dubbi</a><ul>
+      <li>Previous: <a href="../STRANGE_ASM/README.html" title="capitolo precedente">Strange Asm</a></li>
+      <li>Next: <a href="../ASM_SOURCE/README.html" title="capitolo successivo">Asm Source</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Ricerca veloce</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Vai" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2024, Giuliano Verrando.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../_sources/DOUBTS/LINKING/README.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
