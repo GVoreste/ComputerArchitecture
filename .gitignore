@@ -3,7 +3,7 @@ chroot
 *.o
 *.x
 
-docs/_build/doctrees
+docs/_build/
 docs/_static
 docs/_templates
 .doctrees
