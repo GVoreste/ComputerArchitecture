@@ -1,5 +1,0 @@
-An Introduction to Device Drivers
-=================================
-
-.. todo::
-    I dubbi per questo capitolo sono ancora da scrivere...

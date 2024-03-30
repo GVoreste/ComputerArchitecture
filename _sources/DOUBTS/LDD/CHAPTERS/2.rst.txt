@@ -1,5 +1,90 @@
+.. toctree::
+   :maxdepth: 2
+
+
 Building and Running Modules
 ============================
 
-.. todo::
-    I dubbi per questo capitolo sono ancora da scrivere...
+Kernel Modules Versus Applications
+----------------------------------
+
+L'immagine a pagina 19 spiega come funziona il linking di un modulo al kernel e l\'utilizzo delle sue funzionalita\'.
+Non ho capito molto bene questa immagine.
+
+Concurrency in the Kernel
+-------------------------
+
+Non ho molto idea di come funzionino di preciso gli ``interrupts`` di cui parla in questo paragrafo:
+
+- Ogni *input fisico* / *eccezione* / *segnale asincrono* puo\' essere considerato un ``interrupt``?
+
+  Per esempio, ogni tasto che schiaccio sulla tastiera (che e\' un segnale sicuramente *asincrono*) e\' un ``interrupt``?
+
+- Ogni ``interrupt`` ha bisogno di un *handler*?  
+- Come sono implementati questi *handlers*?
+
+- Come possono *astrazioni software (come timer del kernel)* a funzionare in modo *asincrono*?
+
+- In che senso il mio codice puo\' esguire concorrentemente in piu\' di una :abbr:`CPU` nei sistemi :abbr:`SMP (Symmetric MultiProcessor)`?
+  Il kernel e i suoi moduli non eseguono su un unico processore? Come mi devo immaginare il funzionamento del kernel?
+
+  Ad oggi io mi immagino i moduli del kernel come del semplice codice collegato a quello del kernel e che non differisce in modo sostanziale da questo.
+
+  Inoltre mi immagino che i diversi moduli offrano funzionalita\' ad altri moduli esporando simboli utilizzati da altro codice oppure vengano utilizzati come ``interrupts`` handlers:
+
+  .. admonition:: Esempio
+    
+    Il modulo ``LAVATRICE.ko`` implementa la funzione ``void lavaggio_completo(panni * vestiti)`` che prende in input una ``struct`` ``panni`` e ne cambia gli attributi in risposta alla ``WASH SYSCALL`` (software ``interrupt``).
+    Questo modulo e\' compilato in modo che se e\' presente un file che implementa la funzione ``int asciuga(panni * vestiti)`` (``ASCIUGATRICE.ko``) i panni vengano asciugati, altrimenti no.
+ 
+    Nel file ``LAVATRICE.c``:
+    
+
+     .. code-block:: c
+
+       #define TRUE  1
+       #define FALSE 0
+       #include <linux/init.h>
+       .
+       .
+       .
+       void lavaggio_completo(panni * vestiti){
+         lava(vestiti);
+         #ifdef ASCIUGA
+           err=asciuga(vestiti);
+           if(err==0){
+             vestiti->asciutti=TRUE;
+           }
+         #else
+           vestiti->asciutti=FALSE;
+         #endif
+
+       }
+       REGISTER_HANDLER(SYS_WASH,lavaggio_completo);
+
+    Nel file ``ASCIUGATRICE.c``:   
+       
+    .. code:: c
+     
+      #include <linux/init.h>
+      .
+      .
+      .
+      #define ASCIUGA
+      int asciuga(panni * vestiti){
+        .
+        .
+        .
+        return 0
+      }
+
+
+  Mi immagino quindi il kernel come un insieme di ``interrupts`` handlers. 
+
+  Questi me li immagino implementati come una tabella ad un'indirizzo di memoria specifico che fa corrispondere ogni indirizzo ad un ``interrupt`` e a questo un indirizzo di memoria con un handler.
+  
+  In questo modo il processore puo\' rispondere alle esigenze asincrone sia a livello hardware che software (quando viene innescato un segnale di questo tipo il processore cambia il proprio stato e va a caricare il codice da una locazione di memoria accordata). 
+
+  Dal paragrafo che ho letto sembrerebbe invece che il *kernel* abbia anche una parte sincrona (ovvero del codice che che viene eseguito in assenza da alcun segnale in modo sequenziale e che magari continui l'esecuzione nel caso un interruzzione della normale esecuzione venga gestita con successo).
+ 
+

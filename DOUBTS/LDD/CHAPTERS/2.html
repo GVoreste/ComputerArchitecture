@@ -16,7 +16,7 @@
     <link rel="index" title="Indice" href="../../../genindex.html" />
     <link rel="search" title="Cerca" href="../../../search.html" />
     <link rel="next" title="Char Drivers" href="3.html" />
-    <link rel="prev" title="An Introduction to Device Drivers" href="1.html" />
+    <link rel="prev" title="Linux Device Drivers" href="../README.html" />
    
   <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
   
@@ -33,11 +33,78 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="building-and-running-modules">
+  <div class="toctree-wrapper compound">
+</div>
+<div class="section" id="building-and-running-modules">
 <h1>Building and Running Modules<a class="headerlink" href="#building-and-running-modules" title="Link a questa intestazione">¶</a></h1>
-<div class="admonition-todo admonition" id="id1">
-<p class="admonition-title">Da fare</p>
-<p>I dubbi per questo capitolo sono ancora da scrivere…</p>
+<div class="section" id="kernel-modules-versus-applications">
+<h2>Kernel Modules Versus Applications<a class="headerlink" href="#kernel-modules-versus-applications" title="Link a questa intestazione">¶</a></h2>
+<p>L’immagine a pagina 19 spiega come funziona il linking di un modulo al kernel e l’utilizzo delle sue funzionalita”.
+Non ho capito molto bene questa immagine.</p>
+</div>
+<div class="section" id="concurrency-in-the-kernel">
+<h2>Concurrency in the Kernel<a class="headerlink" href="#concurrency-in-the-kernel" title="Link a questa intestazione">¶</a></h2>
+<p>Non ho molto idea di come funzionino di preciso gli <code class="docutils literal notranslate"><span class="pre">interrupts</span></code> di cui parla in questo paragrafo:</p>
+<ul>
+<li><p>Ogni <em>input fisico</em> / <em>eccezione</em> / <em>segnale asincrono</em> puo” essere considerato un <code class="docutils literal notranslate"><span class="pre">interrupt</span></code>?</p>
+<p>Per esempio, ogni tasto che schiaccio sulla tastiera (che e” un segnale sicuramente <em>asincrono</em>) e” un <code class="docutils literal notranslate"><span class="pre">interrupt</span></code>?</p>
+</li>
+<li><p>Ogni <code class="docutils literal notranslate"><span class="pre">interrupt</span></code> ha bisogno di un <em>handler</em>?</p></li>
+<li><p>Come sono implementati questi <em>handlers</em>?</p></li>
+<li><p>Come possono <em>astrazioni software (come timer del kernel)</em> a funzionare in modo <em>asincrono</em>?</p></li>
+<li><p>In che senso il mio codice puo” esguire concorrentemente in piu” di una <abbr>CPU</abbr> nei sistemi <abbr title="Symmetric MultiProcessor">SMP</abbr>?
+Il kernel e i suoi moduli non eseguono su un unico processore? Come mi devo immaginare il funzionamento del kernel?</p>
+<p>Ad oggi io mi immagino i moduli del kernel come del semplice codice collegato a quello del kernel e che non differisce in modo sostanziale da questo.</p>
+<p>Inoltre mi immagino che i diversi moduli offrano funzionalita” ad altri moduli esporando simboli utilizzati da altro codice oppure vengano utilizzati come <code class="docutils literal notranslate"><span class="pre">interrupts</span></code> handlers:</p>
+<div class="admonition-esempio admonition">
+<p class="admonition-title">Esempio</p>
+<p>Il modulo <code class="docutils literal notranslate"><span class="pre">LAVATRICE.ko</span></code> implementa la funzione <code class="docutils literal notranslate"><span class="pre">void</span> <span class="pre">lavaggio_completo(panni</span> <span class="pre">*</span> <span class="pre">vestiti)</span></code> che prende in input una <code class="docutils literal notranslate"><span class="pre">struct</span></code> <code class="docutils literal notranslate"><span class="pre">panni</span></code> e ne cambia gli attributi in risposta alla <code class="docutils literal notranslate"><span class="pre">WASH</span> <span class="pre">SYSCALL</span></code> (software <code class="docutils literal notranslate"><span class="pre">interrupt</span></code>).
+Questo modulo e” compilato in modo che se e” presente un file che implementa la funzione <code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">asciuga(panni</span> <span class="pre">*</span> <span class="pre">vestiti)</span></code> (<code class="docutils literal notranslate"><span class="pre">ASCIUGATRICE.ko</span></code>) i panni vengano asciugati, altrimenti no.</p>
+<p>Nel file <code class="docutils literal notranslate"><span class="pre">LAVATRICE.c</span></code>:</p>
+<blockquote>
+<div><div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#define TRUE  1</span>
+<span class="cp">#define FALSE 0</span>
+<span class="cp">#include</span> <span class="cpf">&lt;linux/init.h&gt;</span><span class="cp"></span>
+<span class="p">.</span>
+<span class="p">.</span>
+<span class="p">.</span>
+<span class="kt">void</span> <span class="n">lavaggio_completo</span><span class="p">(</span><span class="n">panni</span> <span class="o">*</span> <span class="n">vestiti</span><span class="p">){</span>
+  <span class="n">lava</span><span class="p">(</span><span class="n">vestiti</span><span class="p">);</span>
+  <span class="cp">#ifdef ASCIUGA</span>
+    <span class="n">err</span><span class="o">=</span><span class="n">asciuga</span><span class="p">(</span><span class="n">vestiti</span><span class="p">);</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">err</span><span class="o">==</span><span class="mi">0</span><span class="p">){</span>
+      <span class="n">vestiti</span><span class="o">-&gt;</span><span class="n">asciutti</span><span class="o">=</span><span class="n">TRUE</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="cp">#else</span>
+    <span class="n">vestiti</span><span class="o">-&gt;</span><span class="n">asciutti</span><span class="o">=</span><span class="n">FALSE</span><span class="p">;</span>
+  <span class="cp">#endif</span>
+
+<span class="p">}</span>
+<span class="n">REGISTER_HANDLER</span><span class="p">(</span><span class="n">SYS_WASH</span><span class="p">,</span><span class="n">lavaggio_completo</span><span class="p">);</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>Nel file <code class="docutils literal notranslate"><span class="pre">ASCIUGATRICE.c</span></code>:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;linux/init.h&gt;</span><span class="cp"></span>
+<span class="p">.</span>
+<span class="p">.</span>
+<span class="p">.</span>
+<span class="cp">#define ASCIUGA</span>
+<span class="kt">int</span> <span class="n">asciuga</span><span class="p">(</span><span class="n">panni</span> <span class="o">*</span> <span class="n">vestiti</span><span class="p">){</span>
+  <span class="p">.</span>
+  <span class="p">.</span>
+  <span class="p">.</span>
+  <span class="k">return</span> <span class="mi">0</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<p>Mi immagino quindi il kernel come un insieme di <code class="docutils literal notranslate"><span class="pre">interrupts</span></code> handlers.</p>
+<p>Questi me li immagino implementati come una tabella ad un’indirizzo di memoria specifico che fa corrispondere ogni indirizzo ad un <code class="docutils literal notranslate"><span class="pre">interrupt</span></code> e a questo un indirizzo di memoria con un handler.</p>
+<p>In questo modo il processore puo” rispondere alle esigenze asincrone sia a livello hardware che software (quando viene innescato un segnale di questo tipo il processore cambia il proprio stato e va a caricare il codice da una locazione di memoria accordata).</p>
+<p>Dal paragrafo che ho letto sembrerebbe invece che il <em>kernel</em> abbia anche una parte sincrona (ovvero del codice che che viene eseguito in assenza da alcun segnale in modo sequenziale e che magari continui l’esecuzione nel caso un interruzzione della normale esecuzione venga gestita con successo).</p>
+</li>
+</ul>
 </div>
 </div>
 
@@ -65,7 +132,6 @@
 <li class="toctree-l2"><a class="reference internal" href="../../LINKING/README.html">Linking</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../ASM_SOURCE/README.html">Asm Source</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="../README.html">Linux Device Drivers</a><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="1.html">An Introduction to Device Drivers</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">Building and Running Modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="3.html">Char Drivers</a></li>
 </ul>
@@ -81,7 +147,7 @@
   <li><a href="../../../index.html">Documentation overview</a><ul>
   <li><a href="../../README.html">Dubbi</a><ul>
   <li><a href="../README.html">Linux Device Drivers</a><ul>
-      <li>Previous: <a href="1.html" title="capitolo precedente">An Introduction to Device Drivers</a></li>
+      <li>Previous: <a href="../README.html" title="capitolo precedente">Linux Device Drivers</a></li>
       <li>Next: <a href="3.html" title="capitolo successivo">Char Drivers</a></li>
   </ul></li>
   </ul></li>
