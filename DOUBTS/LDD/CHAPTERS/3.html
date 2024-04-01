@@ -15,7 +15,7 @@
     <script src="../../../_static/translations.js"></script>
     <link rel="index" title="Indice" href="../../../genindex.html" />
     <link rel="search" title="Cerca" href="../../../search.html" />
-    <link rel="next" title="Esercizi" href="../../../EXERCISES/README.html" />
+    <link rel="next" title="Debugging Techniques" href="4.html" />
     <link rel="prev" title="Building and Running Modules" href="2.html" />
    
   <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
@@ -35,9 +35,50 @@
             
   <div class="section" id="char-drivers">
 <h1>Char Drivers<a class="headerlink" href="#char-drivers" title="Link a questa intestazione">¶</a></h1>
-<div class="admonition-todo admonition" id="id1">
-<p class="admonition-title">Da fare</p>
-<p>I dubbi per questo capitolo sono ancora da scrivere…</p>
+<div class="section" id="dynamic-allocation-of-major-numbersdynamic-allocation-of-major-numbers">
+<h2>Dynamic Allocation of Major NumbersDynamic Allocation of Major Numbers<a class="headerlink" href="#dynamic-allocation-of-major-numbersdynamic-allocation-of-major-numbers" title="Link a questa intestazione">¶</a></h2>
+<p>Non ho capito precisamente che ruolo hanno i <strong>Major/Minor Numbers</strong> ripetto al file identificativo creato con <code class="docutils literal notranslate"><span class="pre">mknod</span></code>.
+Quello che ho capito e”:</p>
+<ul>
+<li><p>Il <code class="docutils literal notranslate"><span class="pre">Major</span></code> e” l’identificativo di un device, inteso come struttura collegata ad uno o piu” drivers specifici</p></li>
+<li><p>Il <code class="docutils literal notranslate"><span class="pre">Minor</span></code> rappresenta l’istanza autonoma e singola del device indicato dalla <code class="docutils literal notranslate"><span class="pre">Major</span></code>.</p>
+<div class="admonition-esempio admonition">
+<p class="admonition-title">Esempio</p>
+<p>I devices di tipo <em>schermo</em> sono identificati dal <strong>Major Number</strong> <code class="docutils literal notranslate"><span class="pre">8</span></code>, in questo caso il device schermo e” quella struttura gestita dai drivers:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">modulo_luminosita.ko</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">modulo_disegno.ko</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">modulo_disegno_alt.ko</span></code></p></li>
+</ol>
+</div></blockquote>
+<p>questi moduli non hanno bisogno di creare device diversi perche” agiranno in modi diversi su una sezione della memoria strutturata nello stesso modo
+(modo che riflettera” gli attributi e caratteristiche specifiche di un display e parte della quale eventualmente sara” mappata ai <em>pins</em> di uno stesso device fisico).</p>
+<p>Ogni istanza di tipo schermo (quindi in questo caso essendo una parte della <code class="docutils literal notranslate"><span class="pre">struc</span></code> <em>schermo</em> mappata ad una serie di <em>pins</em> fisici, ogni display fisico) avra” associato un <strong>Minor Number</strong>.</p>
+<p>In questo l’utente ha 3 schermi fisici attaccati alle proprie periferiche, quindi avra” 3 regioni della memoria diffenti (con lo stesso <em>layaut</em> essendo lo stesso device) indicizzati
+dai numeri <code class="docutils literal notranslate"><span class="pre">0</span></code>, <code class="docutils literal notranslate"><span class="pre">1</span></code> e <code class="docutils literal notranslate"><span class="pre">3</span></code>.</p>
+</div>
+</li>
+</ul>
+<p>Quello che non mi torna in questa descrizione e” come funzionino i nodi nel <code class="docutils literal notranslate"><span class="pre">fs</span></code> associati ai devices.</p>
+<div class="section" id="scull-driver">
+<h3>Scull driver<a class="headerlink" href="#scull-driver" title="Link a questa intestazione">¶</a></h3>
+<p>In particolare ho installato una implementazione del driver <a class="reference external" href="https://github.com/frasercadger/scull_driver">scull</a>, quello che dice il libro e” che per utilizzare i devices nello <em>user space</em>
+e” necessario mapparli ad un <code class="docutils literal notranslate"><span class="pre">inode</span></code> nel <em>filesystem</em>. Per farlo utilizza il comando <code class="docutils literal notranslate"><span class="pre">mknod</span></code>. Inoltre mentre il libro specifica come ottenere il <strong>Major Number</strong> nello <em>user space</em>,
+non specifica come ottenere il numero dei devices definiti dal driver. Mi sarei aspettato di trovare nella cartella <code class="docutils literal notranslate"><span class="pre">/dev/char</span></code> gli identificativi dei devices,
+invece questa viene popolata quando dallo <em>user space</em> creo il nodo rispettivo.</p>
+<p>Ho pensato quindi che questa potesse trattarsi di una scelta fatta per poter avere devices non accessibili e trasparenti allo <em>user space</em> (se per esempio questi
+vengono utilizzati solamente dal kernel o da altri moduli). Questa mia intuzione pero” non spigherebbe pero” perche” e” possibile creare dei nodi non associati
+ad alcun device (ho provato a lanciare il comando <code class="docutils literal notranslate"><span class="pre">mknod</span></code> scegliendo <code class="docutils literal notranslate"><span class="pre">Minor</span></code> e <code class="docutils literal notranslate"><span class="pre">Major</span></code> che non erano utilizzati da alcun modulo).
+Infine questa teoria non spigherebbe neanche il perche” questi device nel filesystem (che rendono i dispositivi utilizzabili dall’utente) non vengano inizializzati direttamente nel driver.</p>
+</div>
+</div>
+<div class="section" id="read-and-write">
+<h2>read and write<a class="headerlink" href="#read-and-write" title="Link a questa intestazione">¶</a></h2>
+<p>Non ho capito molto bene la differenza tra gli indirizzi di memoria dell’utente e del kernel. Parla del fatto che questi indirizzi dell’utente siano <em>paged</em>
+e che siano mappati in modo differente sulla memoria fisica, immagino che faccia riferimento a come la memoria venga virtualizzata per i processi in user space.</p>
+<p>Questo meccanismo di gestione della memoria non mi e” chiaro fino in fondo e vorrei approfondirlo perche” credo sia un punto nevralgico per capire bene la differenza tra
+il mondo accessibile all’utente e al kernel (e il corretto utilizzo dei puntatori e ai <em>privilegi/flags</em> associati ad ogni area di memoria nella scrittura di un modulo).</p>
 </div>
 </div>
 
@@ -67,6 +108,7 @@
 <li class="toctree-l2 current"><a class="reference internal" href="../README.html">Linux Device Drivers</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="2.html">Building and Running Modules</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">Char Drivers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="4.html">Debugging Techniques</a></li>
 </ul>
 </li>
 </ul>
@@ -81,7 +123,7 @@
   <li><a href="../../README.html">Dubbi</a><ul>
   <li><a href="../README.html">Linux Device Drivers</a><ul>
       <li>Previous: <a href="2.html" title="capitolo precedente">Building and Running Modules</a></li>
-      <li>Next: <a href="../../../EXERCISES/README.html" title="capitolo successivo">Esercizi</a></li>
+      <li>Next: <a href="4.html" title="capitolo successivo">Debugging Techniques</a></li>
   </ul></li>
   </ul></li>
   </ul></li>

@@ -1,6 +1,51 @@
 Char Drivers
 ============
 
-.. todo::
+Dynamic Allocation of Major NumbersDynamic Allocation of Major Numbers
+----------------------------------------------------------------------
+
+Non ho capito precisamente che ruolo hanno i **Major/Minor Numbers** ripetto al file identificativo creato con ``mknod``.
+Quello che ho capito e\':
+
+- Il ``Major`` e\' l'identificativo di un device, inteso come struttura collegata ad uno o piu\' drivers specifici
+- Il ``Minor`` rappresenta l'istanza autonoma e singola del device indicato dalla ``Major``.
+  
+  .. admonition:: Esempio
+
+    I devices di tipo *schermo* sono identificati dal **Major Number** ``8``, in questo caso il device schermo e\' quella struttura gestita dai drivers:
+
+        1. ``modulo_luminosita.ko``
+        2. ``modulo_disegno.ko``
+        3. ``modulo_disegno_alt.ko``
+  
+    questi moduli non hanno bisogno di creare device diversi perche\' agiranno in modi diversi su una sezione della memoria strutturata nello stesso modo
+    (modo che riflettera\' gli attributi e caratteristiche specifiche di un display e parte della quale eventualmente sara\' mappata ai *pins* di uno stesso device fisico).
+
+    Ogni istanza di tipo schermo (quindi in questo caso essendo una parte della ``struc`` *schermo* mappata ad una serie di *pins* fisici, ogni display fisico) avra\' associato un **Minor Number**.
     
-    I dubbi per questo capitolo sono ancora da scrivere...
+    In questo l'utente ha 3 schermi fisici attaccati alle proprie periferiche, quindi avra\' 3 regioni della memoria diffenti (con lo stesso *layaut* essendo lo stesso device) indicizzati
+    dai numeri ``0``, ``1`` e ``3``.
+
+Quello che non mi torna in questa descrizione e\' come funzionino i nodi nel ``fs`` associati ai devices.
+
+Scull driver
+''''''''''''
+
+In particolare ho installato una implementazione del driver `scull <https://github.com/frasercadger/scull_driver>`_, quello che dice il libro e\' che per utilizzare i devices nello *user space*
+e\' necessario mapparli ad un ``inode`` nel *filesystem*. Per farlo utilizza il comando ``mknod``. Inoltre mentre il libro specifica come ottenere il **Major Number** nello *user space*,
+non specifica come ottenere il numero dei devices definiti dal driver. Mi sarei aspettato di trovare nella cartella ``/dev/char`` gli identificativi dei devices,
+invece questa viene popolata quando dallo *user space* creo il nodo rispettivo.
+
+Ho pensato quindi che questa potesse trattarsi di una scelta fatta per poter avere devices non accessibili e trasparenti allo *user space* (se per esempio questi
+vengono utilizzati solamente dal kernel o da altri moduli). Questa mia intuzione pero\' non spigherebbe pero\' perche\' e\' possibile creare dei nodi non associati
+ad alcun device (ho provato a lanciare il comando ``mknod`` scegliendo ``Minor`` e ``Major`` che non erano utilizzati da alcun modulo).
+Infine questa teoria non spigherebbe neanche il perche\' questi device nel filesystem (che rendono i dispositivi utilizzabili dall'utente) non vengano inizializzati direttamente nel driver.
+
+read and write
+--------------
+
+Non ho capito molto bene la differenza tra gli indirizzi di memoria dell'utente e del kernel. Parla del fatto che questi indirizzi dell'utente siano *paged*
+e che siano mappati in modo differente sulla memoria fisica, immagino che faccia riferimento a come la memoria venga virtualizzata per i processi in user space. 
+
+Questo meccanismo di gestione della memoria non mi e\' chiaro fino in fondo e vorrei approfondirlo perche\' credo sia un punto nevralgico per capire bene la differenza tra
+il mondo accessibile all'utente e al kernel (e il corretto utilizzo dei puntatori e ai *privilegi/flags* associati ad ogni area di memoria nella scrittura di un modulo).

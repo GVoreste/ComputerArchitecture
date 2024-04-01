@@ -16,7 +16,7 @@ Documentazione Computer Architecture 2023-2024
 Installazione strumenti per la parte software (|riscv|)
 --------------------------------------------------------------
 Nel :doc:`nella pagina collegata <TOOLS>` viene descritta in modo riproducibile la procedura che ho seguito per installare gli strumenti necessari 
-alla parte del corso sull'architettura |riscv|. La procedura vale per le distribuzioni derivate `Arch` ed e\' stata esplicitamente testata su kernel `6.8.1-arch1-1`
+alla parte del corso sull'architedicettura |riscv|. La procedura vale per le distribuzioni derivate `Arch` ed e\' stata esplicitamente testata su kernel `6.8.1-arch1-1`
 
 Dubbi
 -----
