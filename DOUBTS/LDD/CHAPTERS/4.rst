@@ -1,0 +1,17 @@
+Debugging Techniques
+====================
+
+Debugging by Printing / Redirecting Console Messages
+----------------------------------------------------
+
+Ho provato a impostare il livello di log massimo lanciando il comando ``echo 8 > /proc/sys/kernel/printk``,
+ma l'effetto di questa configurazione non e\' quello che mi aspetterei.
+
+Infatti facendo in questo modo e aprendo una *emulatore di terminale* non vedo i messaggi di log del kernel.
+Al contrario se cambio terminale virtuale (con il comando ``chvt``), vedo gli effetti di ``printk``.
+Inoltre sembra che il messaggio venga scritto solamente nel terminale virtuale che e\' in uso nell'istante in cui viene chiamato il comando di stampa.
+
+Io non riesco a capire come faccia ``printk`` a capire quale dispositivo abbia il focus e quindi su quale stamparmi i messaggi di log.
+
+Inoltre non capisco che differenza ci sia tra i terminali virtuali testuali e quelli invece emulati aperti nella sessione grafica (per esempio con il comando ``kitty`` o ``xterm``)
+e perche\' il kernel riesce a scrivere senza problemi i messaggi sui terminali ``TTY`` e non su quelli emulati ``PTS``.
