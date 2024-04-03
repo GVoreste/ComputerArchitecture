@@ -1,0 +1,179 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <title>Concurrency and Race Conditions &#8212; Computer Architecture 2023-2024  documentazione</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script src="../../../_static/translations.js"></script>
+    <link rel="index" title="Indice" href="../../../genindex.html" />
+    <link rel="search" title="Cerca" href="../../../search.html" />
+    <link rel="next" title="Esercizi" href="../../../EXERCISES/README.html" />
+    <link rel="prev" title="Debugging Techniques" href="4.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="concurrency-and-race-conditions">
+<h1>Concurrency and Race Conditions<a class="headerlink" href="#concurrency-and-race-conditions" title="Link a questa intestazione">¶</a></h1>
+<div class="section" id="the-linux-semaphore-implementation">
+<h2>The Linux Semaphore Implementation<a class="headerlink" href="#the-linux-semaphore-implementation" title="Link a questa intestazione">¶</a></h2>
+<p>In questo paragrafo si parla della possibilita” di chiamare la versione <em>ininterruttibile</em> della funzione <code class="docutils literal notranslate"><span class="pre">down</span></code> del <em>semaforo</em>.</p>
+<p>Io pensavo che tutti i processi fossero interruttibili (forse perche” questo e” il caso tipico in <em>user space</em>).
+Dato che questa e” la situazione, vorrei capire come funziona internamente il sistema di <em>signaling</em> e perche” esistono contesti in cui
+del codice e” auspicabile che non venga interrotto.</p>
+<p>Infine si parla del fatto che sia i semafori che le <code class="docutils literal notranslate"><span class="pre">mutex</span></code> sono meccanismi mettono il <em>thread</em> o processo a dormire.
+Lo stato di <code class="docutils literal notranslate"><span class="pre">sleep</span></code> di un <em>thread</em> non mi e” chiarissimo, penso sia legato a come funziona internamente lo <em>scheduler</em> del kernel.</p>
+<p>A proposito dello stato <code class="docutils literal notranslate"><span class="pre">sleep</span></code>, io lo interpreto come un comando che salva in memoria lo stato del processore all’esecuzione del dato <em>thread</em>
+ed invoca lo <em>scheduler</em> in modo che questo quando reputi opportuno riesumi il processo lasciato in sospeso.</p>
+<p>Nel dettaglio mi immagino il compito dello <em>scheduler</em> come quello di applicare una policy per decidere a quale segmento di codice lasciare il controllo e una volta deciso
+cambiare il valore del registro <em>pc</em> o qualcosa di analogo per fare in modo che il processore esegua una parte di codice.
+Questo poi avra” il controllo fino a che non fara” un operazione di IO (o qualcos’altro di simile, che per esempio richieda accesso ad un device, tempo di attesa del quale dipenda quindi dallo stato del computer),
+in questo caso cambiara” di nuovo il valore nei registri opportuni per dare il controllo allo <em>scheduler</em>. Non so se questa immagine e” la piu” corretta da avere in mente,
+nel caso in cui lo sia non ho idea di come un processo possa in modo automatico rispondere ad un segnale e quindi interrotto (penso che con interruzzione si intenda la risposta ad un segnale asincrono come <code class="docutils literal notranslate"><span class="pre">SINGHUP</span></code> o <code class="docutils literal notranslate"><span class="pre">SIGKILL</span></code>…).</p>
+</div>
+<div class="section" id="using-semaphores-in-scull">
+<h2>Using Semaphores in scull<a class="headerlink" href="#using-semaphores-in-scull" title="Link a questa intestazione">¶</a></h2>
+<p>Nell’esempio che tratta il libro lui testa il valore del semaforo con le linee di codice:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="p">(</span><span class="n">down_interruptible</span><span class="p">(</span><span class="o">&amp;</span><span class="n">dev</span><span class="o">-&gt;</span><span class="n">sem</span><span class="p">)</span>
+    <span class="k">return</span> <span class="o">-</span><span class="n">ERESTARTSYS</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>il libro spiega perche” il motivo del propagare questo errore, ma nonostante questo io non ho capito l’utilita” e il significato.</p>
+</div>
+<div class="section" id="reader-writer-semaphoresreader-writer-semaphores">
+<h2>Reader/Writer SemaphoresReader/Writer Semaphores<a class="headerlink" href="#reader-writer-semaphoresreader-writer-semaphores" title="Link a questa intestazione">¶</a></h2>
+<p>Non ho capito se la assenza della variante <code class="docutils literal notranslate"><span class="pre">interruptible</span></code> del semaforo in lettura e quello in scrittura e” determinato da una impossibilita” concettuale di interrompere questi semafori
+o se semplicemtente non sono mai stati implementati. Inoltre non ho capito molto bene lo usecase di <code class="docutils literal notranslate"><span class="pre">downgrade_write</span></code>.</p>
+</div>
+<div class="section" id="completions">
+<h2>Completions<a class="headerlink" href="#completions" title="Link a questa intestazione">¶</a></h2>
+<p>Per capire come funzionano i semafori ho consultato diverse <a class="reference external" href="https://www.youtube.com/watch?v=0sVGnxg6Z3k">risorse online</a> e ho trovato una primitiva in user space che mi sembra analoga al <code class="docutils literal notranslate"><span class="pre">completion</span></code> e volevo avere conferma del fatto che fosse lo stesso oggetto.
+Ho trovato delle referenze sulle <a class="reference external" href="https://www.gnu.org/software/libc/manual/html_node/ISO-C-Condition-Variables.html">variabili di condizione</a> e sembrano un meccanismo per sincronizzare processi quando sono presenti una serie di processi che aspettano un cambiamento
+da parte di un processo leader in possesso di <code class="docutils literal notranslate"><span class="pre">lock</span></code>.</p>
+<p>Nonostante questo non ho capito molto bene questa sezione. in particolare i problemi legati all’utilizzo dei semafori e del fatto che nel caso presentato sarebbero inefficenti.</p>
+</div>
+<div class="section" id="spinlocks-and-atomic-context">
+<h2>Spinlocks and Atomic Context<a class="headerlink" href="#spinlocks-and-atomic-context" title="Link a questa intestazione">¶</a></h2>
+<p>In questa sezione il libro apparentemente sembrerebbe contraddirsi, infatti dice che gli <code class="docutils literal notranslate"><span class="pre">spinlocks</span></code> sono per loro natura ininterruttibili,
+ma poi spiega di come sussista un problema se un processo aquisisce un <code class="docutils literal notranslate"><span class="pre">lock</span></code> tramite <code class="docutils literal notranslate"><span class="pre">spinlock</span></code> poi vada a dormire;
+per questo consiglia di evitare questo metodo nel caso si abbia del codice non atomico.</p>
+</div>
+<div class="section" id="seqlocks">
+<h2>seqlocks<a class="headerlink" href="#seqlocks" title="Link a questa intestazione">¶</a></h2>
+<p>Non so se ho capito bene, ma mi sembra che in questo il processo <code class="docutils literal notranslate"><span class="pre">write</span></code> sia caratterizzato dalla presenza di un nomale <code class="docutils literal notranslate"><span class="pre">spinlock</span></code>,
+mentre i processi che devono leggere il valore della struttura che si sta” cercando di proteggere, semplicemente leggono il valore all’inizio della sezione critica e alla fine,
+confrontano i risultati della lettura: se risultano diversi viene rieseguita la sezione critica.</p>
+<p>Se ho capito bene il meccanismo, questo risulta non essere affidabile quando c’e” la possibilita” che il valore della variabile che vogliamo rimanga consistente sia pari ad un valore <em>A</em>,
+poi nella parte critica cambia e diventa pari a <em>B</em>, infine prima di uscire da questa ritorna nuovamente pari ad <em>A</em>. In questo caso i valori iniziali e finali sono coerenti,
+nonostante sia avvenuta una <em>race condition</em> e il codice non viene eseguito (nonostante potrebbe portare a risultati inconsistenti).</p>
+<p>Probabilmente non ho capito perfettamente questo sistema di sincronizzazione.</p>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">Computer Architecture 2023-2024</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigazione</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../TOOLS.html">Procedura installazione toolchain</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../README.html">Dubbi</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../STRANGE_ASM/README.html">Strange Asm</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../LINKING/README.html">Linking</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../ASM_SOURCE/README.html">Asm Source</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../README.html">Linux Device Drivers</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="2.html">Building and Running Modules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="3.html">Char Drivers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="4.html">Debugging Techniques</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Concurrency and Race Conditions</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../EXERCISES/README.html">Esercizi</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../README.html">Dubbi</a><ul>
+  <li><a href="../README.html">Linux Device Drivers</a><ul>
+      <li>Previous: <a href="4.html" title="capitolo precedente">Debugging Techniques</a></li>
+      <li>Next: <a href="../../../EXERCISES/README.html" title="capitolo successivo">Esercizi</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Ricerca veloce</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Vai" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2024, Giuliano Verrando.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../../_sources/DOUBTS/LDD/CHAPTERS/5.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
