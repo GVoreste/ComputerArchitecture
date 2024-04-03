@@ -1,0 +1,71 @@
+Concurrency and Race Conditions
+===============================
+
+The Linux Semaphore Implementation
+----------------------------------
+
+In questo paragrafo si parla della possibilita\' di chiamare la versione *ininterruttibile* della funzione ``down`` del *semaforo*.
+
+Io pensavo che tutti i processi fossero interruttibili (forse perche\' questo e\' il caso tipico in *user space*).
+Dato che questa e\' la situazione, vorrei capire come funziona internamente il sistema di *signaling* e perche\' esistono contesti in cui
+del codice e\' auspicabile che non venga interrotto.
+
+Infine si parla del fatto che sia i semafori che le ``mutex`` sono meccanismi mettono il *thread* o processo a dormire.
+Lo stato di ``sleep`` di un *thread* non mi e\' chiarissimo, penso sia legato a come funziona internamente lo *scheduler* del kernel.
+
+A proposito dello stato ``sleep``, io lo interpreto come un comando che salva in memoria lo stato del processore all'esecuzione del dato *thread*
+ed invoca lo *scheduler* in modo che questo quando reputi opportuno riesumi il processo lasciato in sospeso.
+
+Nel dettaglio mi immagino il compito dello *scheduler* come quello di applicare una policy per decidere a quale segmento di codice lasciare il controllo e una volta deciso
+cambiare il valore del registro *pc* o qualcosa di analogo per fare in modo che il processore esegua una parte di codice.
+Questo poi avra\' il controllo fino a che non fara\' un operazione di IO (o qualcos\'altro di simile, che per esempio richieda accesso ad un device, tempo di attesa del quale dipenda quindi dallo stato del computer),
+in questo caso cambiara\' di nuovo il valore nei registri opportuni per dare il controllo allo *scheduler*. Non so se questa immagine e\' la piu\' corretta da avere in mente,
+nel caso in cui lo sia non ho idea di come un processo possa in modo automatico rispondere ad un segnale e quindi interrotto (penso che con interruzzione si intenda la risposta ad un segnale asincrono come ``SINGHUP`` o ``SIGKILL``...).
+
+Using Semaphores in scull
+-------------------------
+
+Nell\'esempio che tratta il libro lui testa il valore del semaforo con le linee di codice:
+
+.. code-block:: c
+
+    if (down_interruptible(&dev->sem)
+        return -ERESTARTSYS;
+
+il libro spiega perche\' il motivo del propagare questo errore, ma nonostante questo io non ho capito l'utilita\' e il significato.
+
+Reader/Writer SemaphoresReader/Writer Semaphores
+------------------------------------------------
+
+Non ho capito se la assenza della variante ``interruptible`` del semaforo in lettura e quello in scrittura e\' determinato da una impossibilita\' concettuale di interrompere questi semafori
+o se semplicemtente non sono mai stati implementati. Inoltre non ho capito molto bene lo usecase di ``downgrade_write``.
+
+Completions
+-----------
+
+Per capire come funzionano i semafori ho consultato diverse `risorse online <https://www.youtube.com/watch?v=0sVGnxg6Z3k>`_ e ho trovato una primitiva in user space che mi sembra analoga al ``completion`` e volevo avere conferma del fatto che fosse lo stesso oggetto.
+Ho trovato delle referenze sulle `variabili di condizione <https://www.gnu.org/software/libc/manual/html_node/ISO-C-Condition-Variables.html>`_ e sembrano un meccanismo per sincronizzare processi quando sono presenti una serie di processi che aspettano un cambiamento 
+da parte di un processo leader in possesso di ``lock``.
+
+Nonostante questo non ho capito molto bene questa sezione. in particolare i problemi legati all'utilizzo dei semafori e del fatto che nel caso presentato sarebbero inefficenti.
+
+Spinlocks and Atomic Context
+----------------------------
+
+In questa sezione il libro apparentemente sembrerebbe contraddirsi, infatti dice che gli ``spinlocks`` sono per loro natura ininterruttibili,
+ma poi spiega di come sussista un problema se un processo aquisisce un ``lock`` tramite ``spinlock`` poi vada a dormire;
+per questo consiglia di evitare questo metodo nel caso si abbia del codice non atomico.
+
+seqlocks
+--------
+
+Non so se ho capito bene, ma mi sembra che in questo il processo ``write`` sia caratterizzato dalla presenza di un nomale ``spinlock``,
+mentre i processi che devono leggere il valore della struttura che si sta\' cercando di proteggere, semplicemente leggono il valore all\'inizio della sezione critica e alla fine,
+confrontano i risultati della lettura: se risultano diversi viene rieseguita la sezione critica.
+
+Se ho capito bene il meccanismo, questo risulta non essere affidabile quando c\'e\' la possibilita\' che il valore della variabile che vogliamo rimanga consistente sia pari ad un valore *A*,
+poi nella parte critica cambia e diventa pari a *B*, infine prima di uscire da questa ritorna nuovamente pari ad *A*. In questo caso i valori iniziali e finali sono coerenti, 
+nonostante sia avvenuta una *race condition* e il codice non viene eseguito (nonostante potrebbe portare a risultati inconsistenti).
+
+Probabilmente non ho capito perfettamente questo sistema di sincronizzazione.
+
